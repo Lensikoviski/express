@@ -102,4 +102,23 @@ router.get('/home',verifylogin,async(req,res)=>{
   }
 })
 
+
+
+router.get('/logout',(req,res)=>{
+  req.session.destroy()
+  res.redirect('/')
+})
+  
+router.get('/myaccount',async(req,res)=>{
+
+      let data =await client.db().collection('userinfo').findOne({loginid:req.session.loginid})   
+      if(data){
+        res.render("layouts/myprofile",{loggedin:req.session.loggedin,username:req.session.username,userdata:data,imagename:data._id.toString()})  
+      }else{
+      res.render('layouts/create_user',{loginid:req.session.loginid,loggedin:req.session.loggedin,username:req.session.username})
+      }
+  
+})  
+
+
 module.exports = router;

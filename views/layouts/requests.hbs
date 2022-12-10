@@ -60,19 +60,17 @@
             <div class="buttons">
                 <form action="/declinerequest" id="declinerequest" method="post">
                     <input type="hidden" name="requested_id" id="" value="{{../this._id}}">
-                    <button
-                        onclick="changetextdecline('{{../this._id}}','{{../this._id}}decline')"
+                    <button onclick="changetextdecline('{{../this._id}}','{{../this._id}}decline')"
                         id="{{../this._id}}decline" type="submit">Decline</button></td>
                 </form>
 
-                <form action="/acceptrequest" method="post" id="acceptrequest" >
-                <input type="hidden" name="requested_id" value="{{../this._id}}">
-                 <button
-                    onclick="makedeclineinvisible('{{../this._id}}decline' , '{{../this._id}}')"
-                    id="{{../this._id}}" type="submit"> Accept</button></td>
+                <form action="/acceptrequest" method="post" id="acceptrequest">
+                    <input type="hidden" name="requested_id" value="{{../this._id}}">
+                    <button onclick="makedeclineinvisible('{{../this._id}}decline' , '{{../this._id}}')"
+                        id="{{../this._id}}" type="submit"> Accept</button></td>
                 </form>
 
-               
+
             </div>
             {{/if}}
 
@@ -152,23 +150,32 @@
 
             {{#if accept}}
 
-            <div class="intrestsend">
-                <p>Intrest send</p>
-                <img src="images/upload.png" alt="">
+            <div class="details">
+                <p>{{../this.name}}</p>
+                <p>{{../this.age}} years</p>
+                <p>{{../this.religion}}</p>
+                <p>Education: {{../this.Education}}</p>
+
+                <div class="intrestsend">
+
+                    <p>Intrest send</p>
+                    <img src="images/upload.png" alt="">
+
+
+                </div>
+
+
+
+                {{/if}}
+
+
+                {{/ifheacceptedornot}}
+
             </div>
 
-
-
-            {{/if}}
-
-
-            {{/ifheacceptedornot}}
+            {{/each}}
 
         </div>
-
-        {{/each}}
-
-    </div>
 
 
 
@@ -212,13 +219,13 @@
         })
     }
 
-        document.getElementById('acceptrequest').onsubmit(function(e){
-                e.preventDefault()
-            })
+    document.getElementById('acceptrequest').onsubmit(function (e) {
+        e.preventDefault()
+    })
 
-            document.getElementById('declinerequest').onsubmit(function(e){
-                e.preventDefault()
-            })
+    document.getElementById('declinerequest').onsubmit(function (e) {
+        e.preventDefault()
+    })
 
 </script>
 
