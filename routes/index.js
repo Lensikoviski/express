@@ -11,7 +11,7 @@ const client = new MongoClient(uri);
 
 router.get('/',async function(req, res, next) {
   let data =  await client.db().collection('userinfo').findOne({name:'akhil U Nair'})
-  res.render('index', { title: 'Express' ,data:data});
+  res.render('layouts/home', { title: 'Express' ,data:data});
 });
 
 module.exports = router;

@@ -10,8 +10,11 @@ var usersRouter = require('./routes/users');
 var app = express();
 
 // view engine setup
+
+var {engine} = require('express-handlebars')
+app.engine('hbs',engine({extname:'hbs',defaultLayout:'default', layoutsDir: path.join(__dirname, '/views/layouts'),partialsDir:path.join(__dirname, 'views/partials')}))
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
 app.use(express.json());
