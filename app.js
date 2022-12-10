@@ -4,11 +4,23 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var session = require('cookie-session');
 var logger = require('morgan');
+var fileupload = require("express-fileupload")
 
 var indexRouter = require('./routes/index');
 
 
 var app = express();
+
+app.use(fileupload()) 
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+const oneday=24*60*60*1000
+app.use(session({secret:'key',cookie:{maxAge:oneday},resave:false,saveUninitialized:true}))
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', indexRouter); 
 
 // view engine setup
 
@@ -85,18 +97,6 @@ app.engine('hbs',engine({extname:'hbs',defaultLayout:'default', layoutsDir: path
 }}))
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-const oneday=24*60*60*1000
-app.use(session({secret:'key',cookie:{maxAge:oneday},resave:false,saveUninitialized:true}))
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter); 
-
-
 
 
 

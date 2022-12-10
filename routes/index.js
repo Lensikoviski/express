@@ -105,12 +105,12 @@ router.get('/home',verifylogin,async(req,res)=>{
 
 
 router.get('/logout',(req,res)=>{
-  req.session.destroy()
+  req.session = null
   res.redirect('/')
 })
   
 router.get('/myaccount',async(req,res)=>{
-
+      //console.log(req.session)
       let data =await client.db().collection('userinfo').findOne({loginid:req.session.loginid})   
       if(data){
         res.render("layouts/myprofile",{loggedin:req.session.loggedin,username:req.session.username,userdata:data,imagename:data._id.toString()})  
@@ -119,6 +119,64 @@ router.get('/myaccount',async(req,res)=>{
       }
   
 })  
+
+
+ 
+router.post('/createuser',(req,res)=>{
+    
+  console.log("createing user")
+  if(req.body.name=='' || req.body.age=='' || req.body.fathersname=='' ||
+  req.body.mothersname=='' || req.body.Education=='' || req.body.familytype==''
+  || req.body.familystatus=='' || req.body.livingin=='' || 
+  req.body.height=='' || req.body.bodytype=='' || req.body.complexion==''||
+  req.body.about=='' || req.body.sex=='' || req.body.martialstatus=='' ||
+  req.body.religion=='' || req.body.occupation=='' || req.body.income=='' ||
+  req.body.height=='' || req.body.weight=='' || req.body.phone=='' ||
+  req.body.address==''){
+  
+  res.render('layouts/create_user',{loginid:req.session.loginid,loggedin:req.session.loggedin,username:req.session.username,Error:'Please fill all the fields',partial_data:req.body})
+
+  }else{
+    client.db().collection('userinfo').insertOne(req.body).then((data)=>{
+      let imagename = data.insertedId
+      if(req.files){
+        let image = req.files.Image
+        image.mv("./public/userimages/"+imagename+".jpg",(err,done)=>{
+        if(!err){
+          console.log("image inserted")
+        }else{
+          throw err   
+        }
+      }) 
+      }
+    })
+    client.db().collection('userinfo').updateOne(
+      {loginid:req.body.loginid},
+      {
+        $set:{
+          intrested:[],
+          myintrests:[]
+        }
+      }
+    )
+    req.session.acc_created=true
+    res.redirect('/myaccount') 
+    console.log(req.session) 
+  }
+ 
+})
+
+router.get("/edit/:id",async (req,res)=>{
+    let data =await client.db().collection('userinfo').findOne({_id:ObjectId(req.params.id)})   
+    res.render('layouts/edit_user',
+    {currdata:data,
+      imagename:data._id.toString(),
+      loggedin:req.session.loggedin,
+      username:req.session.username,
+      loginid:req.session.loginid})
+  
+})
+
 
 
 module.exports = router;
