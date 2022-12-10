@@ -31,8 +31,10 @@ router.get('/signin',verifylogin,(req,res)=>{
 })
 
 router.get('/signup',(req,res)=>{
+ 
   //Dont put /layouts here
   if(req.session.loggedin){
+    console.log(req.session)
     res.redirect('/')
   }else{
     res.render("layouts/signup")
@@ -194,7 +196,7 @@ router.post('/edit/:id',async (req,res)=>{
   req.body.religion=='' || req.body.occupation=='' || req.body.income=='' ||
   req.body.height=='' || req.body.weight=='' || req.body.phone=='' ||
   req.body.address==''){
-    let imagename =await client.db().collection('userinfo').findOne({
+    let imagename =await client.db().collection('userinfo').findOne({   
       loginid:req.body.loginid
     })
     let data = req.body
