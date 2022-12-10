@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var ObjectId = require('mongodb').ObjectID;
 
 /* GET home page. */
 
@@ -176,6 +177,146 @@ router.get("/edit/:id",async (req,res)=>{
       loginid:req.session.loginid})
   
 })
+
+
+
+router.post('/edit/:id',async (req,res)=>{
+  if(req.body.name=='' || req.body.age=='' || req.body.fathersname=='' ||
+  req.body.mothersname=='' || req.body.Education=='' || req.body.familytype==''
+  || req.body.familystatus=='' || req.body.livingin=='' || 
+  req.body.height=='' || req.body.bodytype=='' || req.body.complexion==''||
+  req.body.about=='' || req.body.sex=='' || req.body.martialstatus=='' ||
+  req.body.religion=='' || req.body.occupation=='' || req.body.income=='' ||
+  req.body.height=='' || req.body.weight=='' || req.body.phone=='' ||
+  req.body.address==''){
+    let imagename =await client.db().collection('userinfo').findOne({
+      loginid:req.body.loginid
+    })
+    let data = req.body
+    console.log(data)
+    console.log(imagename._id.toString())   
+    res.render('layouts/edit_user',
+    {currdata:data, 
+      imagename:imagename._id.toString(),
+      loggedin:req.session.loggedin,   
+      username:req.session.username,
+      loginid:req.session.loginid,
+      Error:"please fill all the fields"
+    })
+  }else{
+    await client.db().collection("userinfo").updateOne({_id:ObjectId(req.params.id)},{
+      $set:{
+        name:req.body.name,
+        age:req.body.age,
+        sex:req.body.sex,
+        martialstatus:req.body.martialstatus,
+        religion:req.body.religion,
+        fathersname:req.body.fathersname,
+        mothersname:req.body.mothersname,
+        income:req.body.income,
+        height:req.body.height,
+        weight:req.body.weight,
+        phone:req.body.phone,
+        address:req.body.address,
+        Education:req.body.Education,
+        familytype:req.body.familytype,
+        familystatus:req.body.familystatus,
+        livingin:req.body.livingin,
+        height:req.body.height,
+        bodytype:req.body.bodytype,
+        complexion:req.body.complexion,
+        about:req.body.about,
+        loginid:req.body.loginid
+      }
+    }).then((data)=>{
+      let imagename = req.params.id
+      if(req.files){
+        let image = req.files.Image
+        image.mv("./public/userimages/"+imagename+".jpg",(err,done)=>{
+        if(!err){
+          console.log("image updated")
+        }else{
+          throw err
+        }
+      }) 
+      }
+    })
+    res.redirect('/myaccount')
+  }
+ 
+ 
+})
+
+router.get('/filter',verifylogin,async(req,res)=>{
+  let data =await client.db().collection('userinfo').findOne({
+    loginid:req.session.loginid.toString()
+  })
+  console.log(data)
+  if(data){
+    res.render("layouts/filter",{loggedin:req.session.loggedin,username:req.session.username})
+  }else{
+    res.redirect('/myaccount')
+  } 
+})
+
+router.post('/filter',async (req,res)=>{
+
+  const edu_data=req.body.Education=="choose" ? ["10th","+2","UG","PG","PHD","Diploma","ITI"]  : [req.body.Education]
+  const sex_data=req.body.sex=="choose" ? ["Male","Female"] : [req.body.sex]
+  const martial_data = req.body.martialstatus=="choose" ? ["Unmarried","Divorced"] : [req.body.martialstatus]
+  const religion_data = req.body.religion=="choose" ? ["Hindu","Christian","Islam","Sikh"] : [req.body.religion]
+   const complexion_data = req.body.complexion=="please select" ?  ["very-fair","fair","Wheatish"] : [req.body.complexion] 
+  const lower = req.body.lowerage ? req.body.lowerage : 0
+  const higer = req.body.higherage ? req.body.higherage : 200
+
+  
+ let array=[]
+ for(i=lower;i<higer;i++){
+   array[i]=i.toString()
+ }
+
+ console.log(array)
+
+  const filereddata = await client.db().collection("userinfo").find({
+    loginid:{$ne:req.session.loginid},
+    age:{$in:array},
+    Education:{$in:edu_data},
+    religion:{$in:religion_data},
+    martialstatus:{$in:martial_data},
+    sex:{$in:sex_data},
+    complexion:{$in:complexion_data}
+   }).toArray()
+
+   
+   let currdata = await client.db().collection('userinfo').findOne({
+    loginid:req.session.loginid
+    })     
+
+  let curr_user_id=''
+  if(currdata){
+    curr_user_id = currdata._id 
+  }
+  
+  console.log("lower",lower,"higer",higer)
+  console.log(edu_data)
+  console.log(complexion_data)
+  console.log(sex_data)
+  console.log(religion_data)
+  console.log(martial_data)
+
+  console.log(filereddata)
+
+  res.render('layouts/home',{
+    loggedin:req.session.loggedin,
+    username:req.session.username,
+    curr_user_id:curr_user_id,
+    loginid:req.session.loginid,
+    filter:true,
+    data:filereddata})
+  
+}) 
+
+
 
 
 
