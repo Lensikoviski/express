@@ -317,6 +317,210 @@ router.post('/filter',async (req,res)=>{
 }) 
 
 
+router.get('/requests',verifylogin, async(req,res)=>{
+  let current_user =await client.db().collection('userinfo').findOne({loginid:req.session.loginid})
+  if(current_user){
+    let requests_id_array = current_user.intrested
+    let array=[]
+    for(i=0;i<requests_id_array.length;i++){
+      array[i]=requests_id_array[i].userid
+    }
+   
+  
+    let requested_users =await client.db().collection('userinfo').find(
+      {
+        _id:{
+          $in:array
+        }
+      }
+    ).toArray()  
+  
+    let myintrestsid_id_array = current_user.myintrests
+   
+    let array1=[]
+    for(i=0;i<myintrestsid_id_array.length;i++){
+      array1[i]=myintrestsid_id_array[i].userid
+    }
+  
+    let intrested_users = await client.db().collection('userinfo').find(
+      {
+        _id:{
+          $in:array1
+        }
+      }
+    ).toArray()  
+  
+    
+    let currdata = await client.db().collection('userinfo').findOne(
+      {
+        loginid:req.session.loginid
+      } 
+    )
+  
+    let curr_user_id=''
+    if(currdata){
+      curr_user_id = currdata._id
+    }
+  
+    res.render('layouts/requests',{
+      loggedin:req.session.loggedin,
+      username:req.session.username,
+      loginid:req.session.loginid,
+      requested_users:requested_users,
+      intrested_users:intrested_users,
+      curr_user_id:curr_user_id,
+      requests_id_array:requests_id_array,
+      myintrestsid_id_array:myintrestsid_id_array})
+  
+  }else{
+    res.redirect('/myaccount')
+  }
+
+  //console.log(myintrestsid_id_array)
+  
+   
+}) 
+
+
+
+router.post('/sendintrest',async(req,res)=>{ 
+
+  
+  let ifpresent = await client.db().collection('userinfo').findOne(
+    {
+      loginid:req.session.loginid,
+    "myintrests.userid":ObjectId(req.body.request_to)
+  }
+  )
+
+  if(ifpresent){
+    await client.db().collection('userinfo').updateOne(
+      {
+        loginid:req.session.loginid,
+      "myintrests.userid":ObjectId(req.body.request_to)
+    },{
+      $set:{
+        "myintrests.$.declined":false
+      }
+    }
+    )
+  }else{
+    await client.db().collection('userinfo').updateOne(  
+      {loginid:req.body.loginid},   
+      {
+        $push:{
+          myintrests:{
+            userid:ObjectId(req.body.request_to),
+            accepted:false,
+            declined:false  
+          }
+        }
+      }
+    ) 
+  }
+
+ 
+  let data = await  client.db().collection('userinfo').findOne( 
+    {loginid:req.body.loginid.toString()} 
+  )
+
+  console.log(req.body)
+
+  const userid = data._id
+  client.db().collection('userinfo').updateOne(
+    {_id:ObjectId(req.body.request_to)}, 
+    {
+      $push:{
+        intrested:{
+          userid:userid,
+          accepted:false
+        }
+      } 
+    }
+  )
+  
+})
+
+   
+router.post('/acceptrequest',async(req,res)=>{
+ // console.log(req.body)
+  let data = await client.db().collection('userinfo').updateOne(
+    {loginid:req.session.loginid,"intrested.userid":ObjectId(req.body.requested_id)},
+   
+    {
+      $set:{
+        "intrested.$.accepted":true
+      }
+    }
+  )
+
+
+  let currdata = await client.db().collection('userinfo').findOne(
+    {
+      loginid:req.session.loginid
+    } 
+  )
+
+  let curr_user_id=''
+  if(currdata){
+    curr_user_id = currdata._id
+  }
+
+  
+  
+  await client.db().collection('userinfo').updateOne(
+    {_id:ObjectId(req.body.requested_id),"myintrests.userid":curr_user_id},
+
+    {
+      $set:{
+        "myintrests.$.accepted":true
+      }
+    }
+  )
+  res.redirect('/requests') 
+}) 
+
+
+router.post('/declinerequest',async(req,res)=>{
+  await client.db().collection('userinfo').updateOne(
+    {loginid:req.session.loginid},
+    {
+      $pull:{
+        intrested:{userid:ObjectId(req.body.requested_id)}
+      }
+    }
+  )
+
+
+
+  let currdata = await client.db().collection('userinfo').findOne(
+    {
+      loginid:req.session.loginid
+    } 
+  )
+
+  let curr_user_id=''
+  if(currdata){
+    curr_user_id = currdata._id
+  }
+
+  await client.db().collection('userinfo').updateOne(
+    {_id:ObjectId(req.body.requested_id),"myintrests.userid":curr_user_id},
+    {$set:{
+      "myintrests.$.declined":true
+    }}
+  )
+
+  console.log(req.session.loginid)
+  console.log(req.body.requested_id)
+  console.log("deleted")
+
+ 
+ 
+})
+
+
+
 
 
 
