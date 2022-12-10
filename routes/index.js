@@ -515,9 +515,76 @@ router.post('/declinerequest',async(req,res)=>{
   console.log(req.body.requested_id)
   console.log("deleted")
 
- 
- 
+
 })
+
+
+router.get('/viewprofile/:id',async(req,res)=>{
+  console.log(req.params.id)
+  let data =await client.db().collection('userinfo').findOne(
+    {
+      _id:ObjectId(req.params.id)
+    }
+  )
+  res.render('layouts/viewprofile',{data:data,loggedin:req.session.loggedin,username:req.session.username})
+})  
+
+router.post('/search',async(req,res)=>{
+  let data = await client.db().collection('userinfo').findOne(
+    {
+      name:req.body.search_name 
+    }
+  )
+
+  let notfind = false
+  let sameuser = false
+  let currdata=''
+
+  if(!data){
+    notfind=true
+  }else{
+    console.log("Entered")
+    let currdata = await client.db().collection('userinfo').findOne(
+      {
+        loginid:req.session.loginid
+      }
+    )
+
+    //console.log(currdata)
+  
+    if(currdata.name==req.body.search_name){
+      sameuser = true
+    }
+  }
+
+
+  let curr_user_id=''
+  if(currdata){    
+    curr_user_id = currdata._id 
+  }
+
+
+ console.log(sameuser)
+
+  res.render('layouts/home',{
+    loggedin:req.session.loggedin,
+    username:req.session.username,
+    loginid:req.session.loginid,
+    curr_user_id:req.session.curr_user_id,
+    searched_data:data,
+    intrested:notfind ? [] : data.intrested, 
+    sameuser:sameuser,
+    notfind:notfind
+  })
+
+
+
+})
+
+
+
+
+
 
 
 
