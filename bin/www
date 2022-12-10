@@ -25,7 +25,18 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+const { MongoClient } = require('mongodb');
+const uri="mongodb+srv://jayaramskumar:just4marry@cluster0.gguofay.mongodb.net/matrimony?retryWrites=true&w=majority"
+const client = new MongoClient(uri);
+client.connect(err => {
+  if(err){ console.error(err); return false;}
+  // connection to mongo is successful, listen for requests
+    server.listen(port, () => {
+      console.log("listening for requests on port:",port);
+  })
+});
+
+
 server.on('error', onError);
 server.on('listening', onListening);
 
