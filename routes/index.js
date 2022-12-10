@@ -2,6 +2,11 @@ var express = require('express');
 var router = express.Router();
 var ObjectId = require('mongodb').ObjectID;
 
+router.use(function(req, res, next) {
+  res.set('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+  next();
+}); 
+
 /* GET home page. */
 
 const { MongoClient } = require('mongodb');
@@ -110,7 +115,7 @@ router.get('/logout',(req,res)=>{
   res.redirect('/')
 })
   
-router.get('/myaccount',async(req,res)=>{
+router.get('/myaccount',verifylogin, async(req,res)=>{
       //console.log(req.session)
       let data =await client.db().collection('userinfo').findOne({loginid:req.session.loginid})   
       if(data){
@@ -167,7 +172,7 @@ router.post('/createuser',(req,res)=>{
  
 })
 
-router.get("/edit/:id",async (req,res)=>{
+router.get("/edit/:id",verifylogin, async (req,res)=>{
     let data =await client.db().collection('userinfo').findOne({_id:ObjectId(req.params.id)})   
     res.render('layouts/edit_user',
     {currdata:data,
